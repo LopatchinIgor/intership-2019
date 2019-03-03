@@ -89,7 +89,27 @@ namespace ObjectBrowser.MetadataMenu
 			foreach (var propertyInfo in properties.OrderBy(x => x.MemberType).ThenBy(x => x.Name))
 			{
 				Console.WriteLine(format, propertyInfo.Name, propertyInfo.GetValue(memberInfo));
-			}
+
+                if (memberInfo is MethodInfo)
+                {
+                    var methodInfo = memberInfo as MethodInfo;
+                    var methodInfoParametrs = methodInfo.GetParameters();
+
+                    foreach (var parameter in methodInfoParametrs)
+                    {
+                        Console.WriteLine($"\t\t{parameter.Name}");
+
+                        var publicParameterProperties = parameter.GetType().GetProperties().Where(property => property.GetGetMethod().IsPublic);
+                        var maxPublicParameterPropertyNameLength = publicParameterProperties.Max(property => property.Name.Length);
+
+                        var publicPropertyFormat = "\t\t{0,-" + maxPublicParameterPropertyNameLength.ToString() + "} : {1}";
+                        foreach (var publicProperty in publicParameterProperties)
+                        {
+                            Console.WriteLine(publicPropertyFormat, publicProperty.Name, publicProperty.GetValue(parameter)); // or publicProperty
+                        }
+                    }
+                }
+            }
 		}
 
 		private static string GetMemberInfoString(MemberInfo memberInfo)
